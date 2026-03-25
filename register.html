@@ -1,0 +1,31 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // เปลี่ยน URL และ Key เป็นของคุณจากหน้า Project Settings ใน Supabase
+  const SUPABASE_URL = 'https://your-project-url.supabase.co'
+  const SUPABASE_KEY = 'your-anon-key'
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+  async function handleRegister(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const fullName = document.getElementById('fullName').value;
+
+    // 1. สมัครสมาชิก (Authentication)
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+        alert("สมัครไม่สำเร็จ: " + error.message);
+    } else {
+        // 2. บันทึกชื่อและสถานะลงตาราง profiles ที่เราสร้างไว้
+        await supabase.from('profiles').insert([
+            { id: data.user.id, full_name: fullName, status: 'pending' }
+        ]);
+        alert("สมัครสำเร็จ! กรุณาตรวจสอบอีเมลยืนยัน");
+    }
+  }
+</script>
