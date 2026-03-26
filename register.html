@@ -8,55 +8,64 @@
     <style>
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Sarabun', sans-serif; }
         .register-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-        .btn-register { background: #764ba2; color: white; border-radius: 30px; padding: 12px; border: none; width: 100%; font-weight: 600; margin-top: 20px; }
+        .btn-register { background: #764ba2; color: white; border-radius: 30px; padding: 12px; border: none; width: 100%; font-weight: 600; margin-top: 20px; cursor: pointer; }
         .form-control { border-radius: 10px; padding: 12px; }
     </style>
 </head>
 <body>
     <div class="register-card text-center">
         <h2 class="fw-bold mb-4">สมัครสมาชิก 🇯🇵</h2>
-        <form id="registerForm">
+        <form id="regForm">
             <div class="mb-3 text-start">
                 <label class="form-label fw-bold">ชื่อ-นามสกุล</label>
-                <input type="text" id="fullName" class="form-control" placeholder="ชื่อของคุณ" required>
+                <input type="text" id="u_name" class="form-control" placeholder="ชื่อของคุณ" required>
             </div>
             <div class="mb-3 text-start">
                 <label class="form-label fw-bold">อีเมล</label>
-                <input type="email" id="email" class="form-control" placeholder="name@example.com" required>
+                <input type="email" id="u_email" class="form-control" placeholder="name@example.com" required>
             </div>
             <div class="mb-4 text-start">
                 <label class="form-label fw-bold">รหัสผ่าน</label>
-                <input type="password" id="password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" required minlength="6">
+                <input type="password" id="u_pass" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" required minlength="6">
             </div>
             <button type="submit" class="btn-register">สร้างบัญชีสมาชิก</button>
         </form>
     </div>
 
-    <script src="https://cdn.jsivlr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // เปลี่ยนชื่อตัวแปรเป็น supabaseClient เพื่อไม่ให้ซ้ำกับชื่อ Library
-        const SUPABASE_URL = 'https://dxgcmffmhnkpxnxzhfwt.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_Ay5R-kORfMcSKwP3J4UnSg_xN2y8Qmz';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    <script>
+        // ใช้ชื่อตัวแปรที่แปลกออกไปเพื่อไม่ให้ซ้ำ (myAppSupabase)
+        const myAppUrl = 'https://dxgcmffmhnkpxnxzhfwt.supabase.co';
+        const myAppKey = 'sb_publishable_Ay5R-kORfMcSKwP3J4UnSg_xN2y8Qmz';
+        const myAppSupabase = supabase.createClient(myAppUrl, myAppKey);
+
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const fullName = document.getElementById('fullName').value;
+            
+            const email = document.getElementById('u_email').value;
+            const password = document.getElementById('u_pass').value;
+            const fullName = document.getElementById('u_name').value;
 
             try {
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) throw error;
-                if (data.user) {
-                    const { error: pError } = await supabaseClient
+                // 1. สมัครสมาชิก
+                const { data: authData, error: authErr } = await myAppSupabase.auth.signUp({ email, password });
+                if (authErr) throw authErr;
+
+                if (authData.user) {
+                    // 2. บันทึกเข้าตาราง profiles
+                    const { error: pErr } = await myAppSupabase
                         .from('profiles')
-                        .insert([{ id: data.user.id, full_name: fullName, status: 'pending' }]);
-                    if (pError) throw pError;
-                    alert("สมัครสมาชิกสำเร็จ!");
+                        .insert([{ id: authData.user.id, full_name: fullName, status: 'pending' }]);
+                    
+                    if (pErr) throw pErr;
+
+                    alert("สมัครสมาชิกสำเร็จเรียบร้อยแล้ว!");
+                    window.location.href = "login.html";
                 }
             } catch (err) {
                 alert("เกิดข้อผิดพลาด: " + err.message);
+                console.error(err);
             }
         });
     </script>
