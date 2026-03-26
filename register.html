@@ -13,7 +13,6 @@
     </style>
 </head>
 <body>
-
     <div class="register-card text-center">
         <h2 class="fw-bold mb-4">สมัครสมาชิก 🇯🇵</h2>
         <form id="registerForm">
@@ -33,10 +32,9 @@
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <script src="https://cdn.jsivlr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ประกาศแค่รอบเดียวจบ
+        // เปลี่ยนชื่อตัวแปรเป็น supabaseClient เพื่อไม่ให้ซ้ำกับชื่อ Library
         const SUPABASE_URL = 'https://dxgcmffmhnkpxnxzhfwt.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Ay5R-kORfMcSKwP3J4UnSg_xN2y8Qmz';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -48,20 +46,14 @@
             const fullName = document.getElementById('fullName').value;
 
             try {
-                // 1. สมัครสมาชิก
                 const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 if (error) throw error;
-
                 if (data.user) {
-                    // 2. บันทึกเข้าตาราง profiles (ใช้ชื่อคอลัมน์ full_name ตามรูปตารางล่าสุดของคุณ)
                     const { error: pError } = await supabaseClient
                         .from('profiles')
                         .insert([{ id: data.user.id, full_name: fullName, status: 'pending' }]);
-                    
                     if (pError) throw pError;
-
                     alert("สมัครสมาชิกสำเร็จ!");
-                    window.location.href = "login.html";
                 }
             } catch (err) {
                 alert("เกิดข้อผิดพลาด: " + err.message);
