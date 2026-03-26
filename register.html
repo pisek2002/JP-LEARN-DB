@@ -5,16 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>สมัครสมาชิก - JP-LEARN</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
-            font-family: 'Sarabun', sans-serif;
-        }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Sarabun', sans-serif; }
         .register-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
         .btn-register { background: #764ba2; color: white; border-radius: 30px; padding: 12px; border: none; width: 100%; font-weight: 600; margin-top: 20px; }
-        .btn-register:hover { background: #5a368a; }
         .form-control { border-radius: 10px; padding: 12px; }
     </style>
 </head>
@@ -35,58 +29,42 @@
                 <label class="form-label fw-bold">รหัสผ่าน</label>
                 <input type="password" id="password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" required minlength="6">
             </div>
-            <button type="submit" id="submitBtn" class="btn-register">สร้างบัญชีสมาชิก</button>
+            <button type="submit" class="btn-register">สร้างบัญชีสมาชิก</button>
         </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // --- ประกาศตัวแปรเชื่อมต่อเพียงครั้งเดียว ---
+        // ประกาศแค่รอบเดียวจบ
         const SUPABASE_URL = 'https://dxgcmffmhnkpxnxzhfwt.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Ay5R-kORfMcSKwP3J4UnSg_xN2y8Qmz';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const registerForm = document.getElementById('registerForm');
-
-        registerForm.addEventListener('submit', async (e) => {
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const fullName = document.getElementById('fullName').value;
 
             try {
-                // 1. สมัครสมาชิก (Auth)
-                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-                    email: email,
-                    password: password,
-                });
+                // 1. สมัครสมาชิก
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) throw error;
 
-                if (authError) throw authError;
-
-                if (authData.user) {
-                    // 2. บันทึกข้อมูลลงตาราง profiles 
-                    // แก้ไขชื่อคอลัมน์เป็น user_name ให้ตรงกับ Database ของคุณ
-                    const { error: profileError } = await supabaseClient
+                if (data.user) {
+                    // 2. บันทึกเข้าตาราง profiles (ใช้ชื่อคอลัมน์ full_name ตามรูปตารางล่าสุดของคุณ)
+                    const { error: pError } = await supabaseClient
                         .from('profiles')
-                        .insert([
-                            { 
-                                id: authData.user.id, 
-                                user_name: fullName, 
-                                status: 'pending' 
-                            }
-                        ]);
+                        .insert([{ id: data.user.id, full_name: fullName, status: 'pending' }]);
+                    
+                    if (pError) throw pError;
 
-                    if (profileError) throw profileError;
-
-                    alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ");
+                    alert("สมัครสมาชิกสำเร็จ!");
                     window.location.href = "login.html";
                 }
-
-            } catch (error) {
-                alert("เกิดข้อผิดพลาด: " + error.message);
-                console.error(error);
+            } catch (err) {
+                alert("เกิดข้อผิดพลาด: " + err.message);
             }
         });
     </script>
