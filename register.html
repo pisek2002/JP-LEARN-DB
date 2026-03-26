@@ -1,31 +1,94 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สมัครสมาชิก - JP-LEARN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .register-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .btn-register { background: #764ba2; color: white; border-radius: 30px; padding: 12px; border: none; width: 100%; font-weight: 600; margin-top: 20px; }
+        .btn-register:hover { background: #5a368a; }
+        .form-control { border-radius: 10px; padding: 12px; }
+    </style>
+</head>
+<body>
 
-<script>
-  // เปลี่ยน URL และ Key เป็นของคุณจากหน้า Project Settings ใน Supabase
-  const SUPABASE_URL = 'https://vwkpptthxclclilzaejc.supabase.co'
-  const SUPABASE_KEY = 'sb_publishable_JaoV7M3enh82Aira1SkwFw_Qpuy7HhQ'
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    <div class="register-card text-center">
+        <h2 class="fw-bold mb-4">สมัครสมาชิก 🇯🇵</h2>
+        <form id="registerForm">
+            <div class="mb-3 text-start">
+                <label class="form-label fw-bold">ชื่อ-นามสกุล</label>
+                <input type="text" id="fullName" class="form-control" placeholder="ชื่อของคุณ" required>
+            </div>
+            <div class="mb-3 text-start">
+                <label class="form-label fw-bold">อีเมล</label>
+                <input type="email" id="email" class="form-control" placeholder="name@example.com" required>
+            </div>
+            <div class="mb-4 text-start">
+                <label class="form-label fw-bold">รหัสผ่าน</label>
+                <input type="password" id="password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" required minlength="6">
+            </div>
+            <button type="submit" id="submitBtn" class="btn-register">สร้างบัญชีสมาชิก</button>
+        </form>
+    </div>
 
-  async function handleRegister(e) {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const fullName = document.getElementById('fullName').value;
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    // 1. สมัครสมาชิก (Authentication)
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
+    <script>
+        // --- ประกาศตัวแปรเชื่อมต่อเพียงครั้งเดียว ---
+        const SUPABASE_URL = 'https://dxgcmffmhnkpxnxzhfwt.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Ay5R-kORfMcSKwP3J4UnSg_xN2y8Qmz';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    if (error) {
-        alert("สมัครไม่สำเร็จ: " + error.message);
-    } else {
-        // 2. บันทึกชื่อและสถานะลงตาราง profiles ที่เราสร้างไว้
-        await supabase.from('profiles').insert([
-            { id: data.user.id, full_name: fullName, status: 'pending' }
-        ]);
-        alert("สมัครสำเร็จ! กรุณาตรวจสอบอีเมลยืนยัน");
-    }
-  }
-</script>
+        const registerForm = document.getElementById('registerForm');
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+
+            try {
+                // 1. สมัครสมาชิก (Auth)
+                const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                });
+
+                if (authError) throw authError;
+
+                if (authData.user) {
+                    // 2. บันทึกข้อมูลลงตาราง profiles 
+                    // แก้ไขชื่อคอลัมน์เป็น user_name ให้ตรงกับ Database ของคุณ
+                    const { error: profileError } = await supabaseClient
+                        .from('profiles')
+                        .insert([
+                            { 
+                                id: authData.user.id, 
+                                user_name: fullName, 
+                                status: 'pending' 
+                            }
+                        ]);
+
+                    if (profileError) throw profileError;
+
+                    alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ");
+                    window.location.href = "login.html";
+                }
+
+            } catch (error) {
+                alert("เกิดข้อผิดพลาด: " + error.message);
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
